@@ -133,7 +133,8 @@ class InlineParser {
 
       // If the previous node is text too, just append.
       if ((nodes.length > 0) && (nodes.last is Text)) {
-        final newNode = new Text('${nodes.last.text}$text');
+        final textNode = nodes.last as Text;
+        final newNode = new Text('${textNode.text}$text');
         nodes[nodes.length - 1] = newNode;
       } else {
         nodes.add(new Text(text));
@@ -188,8 +189,8 @@ abstract class InlineSyntax {
 class TextSyntax extends InlineSyntax {
   final String substitute;
   TextSyntax(String pattern, {String sub})
-      : super(pattern),
-        substitute = sub;
+      : substitute = sub,
+        super(pattern);
 
   bool onMatch(InlineParser parser, Match match) {
     if (substitute == null) {
@@ -227,9 +228,9 @@ class TagSyntax extends InlineSyntax {
   final String tag;
 
   TagSyntax(String pattern, {String tag, String end})
-      : super(pattern),
-        endPattern = new RegExp((end != null) ? end : pattern, multiLine: true),
-        tag = tag;
+      : endPattern = new RegExp((end != null) ? end : pattern, multiLine: true),
+        tag = tag,
+        super(pattern);
   // TODO(rnystrom): Doing this.field doesn't seem to work with named args.
 
   bool onMatch(InlineParser parser, Match match) {
@@ -271,7 +272,7 @@ class LinkSyntax extends TagSyntax {
   LinkSyntax({this.linkResolver, String pattern: r'\['})
       : super(pattern, end: linkPattern);
 
-  Node createNode(InlineParser parser, Match match, TagState state) {
+  Element createNode(InlineParser parser, Match match, TagState state) {
     // If we didn't match refLink or inlineLink, then it means there was
     // nothing after the first square bracket, so it isn't a normal markdown
     // link at all. Instead, we allow users of the library to specify a special
@@ -344,7 +345,7 @@ class ImageLinkSyntax extends LinkSyntax {
   final Resolver linkResolver;
   ImageLinkSyntax({this.linkResolver}) : super(pattern: r'!\[');
 
-  Node createNode(InlineParser parser, Match match, TagState state) {
+  Element createNode(InlineParser parser, Match match, TagState state) {
     var node = super.createNode(parser, match, state);
     if (resolved) return node;
     if (node == null) return null;
